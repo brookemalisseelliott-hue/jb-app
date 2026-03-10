@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0d2540">
+<link rel="manifest" href="manifest.json">
+<title>JB Contracting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue: #1a3a5c; --blued: #0d2540; --blue-l: #2a5a8c; --blue-xl: #e8f0f8;
+  --gold: #c9a227; --goldl: #e8c84a; --gold-bg: #fdf8eb;
+  --bg: #f6f3ed; --bg2: #eae6dd; --card: #ffffff; --card-h: #fafaf8;
+  --text: #1e1e1e; --text2: #5a5a5a; --gray: #999; --border: #e2dfd8;
+  --green: #1fa855; --green-bg: #e6f9ee; --red: #d63031; --red-bg: #fde8e8;
+  --orange: #e17d24; --orange-bg: #fef3e5; --purple: #7c3aed; --purple-bg: #f0e8ff;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08); --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+  --radius: 14px; --radius-sm: 10px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html { height:100%; }
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: var(--bg); min-height:100%; color: var(--text);
+  padding-bottom: calc(76px + var(--safe-b));
+  overflow-x: hidden; -webkit-font-smoothing: antialiased;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+@keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+@keyframes scaleIn { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
+@keyframes shimmer { to{background-position:-200% 0} }
+@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+@keyframes toast-in { from{opacity:0;transform:translateX(-50%) translateY(-20px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+@keyframes toast-out { from{opacity:1} to{opacity:0} }
+
+.anim { animation: fadeUp 0.4s ease both; }
+.anim-d1 { animation-delay: 0.05s; }
+.anim-d2 { animation-delay: 0.1s; }
+.anim-d3 { animation-delay: 0.15s; }
+.anim-d4 { animation-delay: 0.2s; }
+
+/* ===== TOP BAR ===== */
+.topbar {
+  background: linear-gradient(135deg, var(--blue) 0%, var(--blued) 100%);
+  padding: 14px 20px; padding-top: calc(14px + env(safe-area-inset-top, 0px));
+  display:flex; justify-content:space-between; align-items:center;
+  position:sticky; top:0; z-index:90;
+}
+.topbar-brand h1 { font-family:'Playfair Display',serif; font-size:20px; color:#fff; line-height:1.2; }
+.topbar-brand .sub { font-size:9px; color:var(--gold); letter-spacing:4px; text-transform:uppercase; margin-top:2px; }
+.topbar-right { display:flex; gap:8px; align-items:center; }
+.gbar { height:3px; background:linear-gradient(90deg,var(--gold),var(--goldl),var(--gold)); position:relative; }
+.gbar::after { content:''; position:absolute; inset:0; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.4),transparent); animation:shimmer 3s infinite; background-size:200% 100%; }
+
+/* ===== BOTTOM NAV ===== */
+.bnav {
+  position:fixed; bottom:0; left:0; right:0;
+  background:linear-gradient(180deg, var(--blued) 0%, #060f1a 100%);
+  display:flex; z-index:100;
+  padding-bottom: var(--safe-b);
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.4);
+  border-top: 1px solid rgba(201,162,39,0.15);
+}
+.bnav button {
+  flex:1; padding:10px 4px 8px; background:none; border:none;
+  color:rgba(255,255,255,0.35); font-size:10px; font-family:inherit;
+  cursor:pointer; display:flex; flex-direction:column; align-items:center;
+  gap:4px; font-weight:600; transition:all 0.3s ease; position:relative;
+}
+.bnav button.on { color:var(--gold); }
+.bnav button.on::before {
+  content:''; position:absolute; top:0; left:25%; right:25%;
+  height:2px; background:var(--gold); border-radius:0 0 2px 2px;
+}
+.bnav button svg { width:24px; height:24px; stroke:currentColor; fill:none; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; transition:transform 0.2s; }
+.bnav button.on svg { transform:scale(1.1); }
+
+/* ===== PAGE ===== */
+.page { display:none; max-width:960px; margin:0 auto; padding:16px 14px 24px; }
+.page.show { display:block; animation:fadeIn 0.25s ease; }
+
+/* ===== CARDS ===== */
+.card {
+  background:var(--card); border-radius:var(--radius); padding:20px;
+  margin-bottom:14px; box-shadow:var(--shadow);
+  border:1px solid rgba(0,0,0,0.04); transition:box-shadow 0.2s;
+}
+.card:active { box-shadow:0 1px 4px rgba(0,0,0,0.06); }
+.card-t {
+  font-size:16px; font-weight:700; color:var(--blue); margin-bottom:14px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.card-t .count { font-size:12px; color:var(--gray); font-weight:500; }
+
+/* ===== INPUTS (big tap targets) ===== */
+.fg { display:grid; grid-template-columns:1fr; gap:12px; }
+.full { grid-column:1/-1; }
+.lbl {
+  display:block; font-size:11px; text-transform:uppercase; letter-spacing:2px;
+  color:var(--text2); margin-bottom:6px; font-weight:600;
+}
+input, textarea, select {
+  width:100%; padding:14px 16px; border:2px solid var(--border); border-radius:var(--radius-sm);
+  font-size:16px; font-family:inherit; background:var(--card); color:var(--text);
+  outline:none; -webkit-appearance:none; transition:border-color 0.2s, box-shadow 0.2s;
+  min-height:52px;
+}
+input:focus, textarea:focus, select:focus {
+  border-color:var(--gold); box-shadow:0 0 0 3px rgba(201,162,39,0.15);
+}
+textarea { resize:vertical; min-height:100px; line-height:1.6; }
+select {
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' stroke='%23999' fill='none' stroke-width='2'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 14px center; padding-right:40px;
+}
+.search-wrap {
+  position:relative; margin-bottom:14px;
+}
+.search-wrap input {
+  padding-left:44px; background:var(--card);
+}
+.search-wrap svg {
+  position:absolute; left:14px; top:50%; transform:translateY(-50%);
+  width:20px; height:20px; stroke:var(--gray); fill:none; stroke-width:1.8;
+}
+
+/* ===== BUTTONS (big, chunky, glove-friendly) ===== */
+.btn {
+  padding:16px 24px; border:none; border-radius:var(--radius-sm);
+  font-size:15px; font-weight:600; cursor:pointer; font-family:inherit;
+  transition:all 0.2s ease; min-height:52px; display:inline-flex;
+  align-items:center; justify-content:center; gap:8px;
+}
+.btn:active { transform:scale(0.97); }
+.btn:disabled { opacity:0.35; cursor:not-allowed; transform:none; }
+.btn-blue { background:var(--blue); color:#fff; }
+.btn-blue:active { background:var(--blued); }
+.btn-gold { background:linear-gradient(135deg,var(--gold),var(--goldl)); color:var(--blued); font-weight:700; }
+.btn-gold:active { background:var(--gold); }
+.btn-out { background:transparent; color:var(--blue); border:2px solid var(--blue); }
+.btn-ghost { background:var(--bg); color:var(--text2); border:2px solid var(--border); }
+.btn-red { background:var(--red-bg); color:var(--red); }
+.btn-green { background:var(--green); color:#fff; }
+.btn-orange { background:var(--orange); color:#fff; }
+.btn-full { width:100%; }
+.btn-sm { padding:10px 16px; font-size:13px; min-height:42px; }
+.btn-icon { padding:12px; min-height:44px; min-width:44px; }
+
+/* ===== CATALOG ===== */
+.cat-panel { background:var(--bg); border-radius:var(--radius); padding:16px; margin-bottom:14px; border:1px solid var(--border); animation:scaleIn 0.2s ease; }
+.cat-tabs { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+.ct {
+  padding:8px 14px; border-radius:24px; border:2px solid var(--border); background:var(--card);
+  color:var(--text2); font-size:12px; font-weight:600; cursor:pointer; font-family:inherit;
+  transition:all 0.2s; min-height:38px;
+}
+.ct.on { border-color:var(--blue); background:var(--blue); color:#fff; }
+.ct:active { transform:scale(0.96); }
+.cat-list { display:grid; grid-template-columns:1fr; gap:6px; max-height:300px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.cat-itm {
+  padding:14px 16px; background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm);
+  text-align:left; cursor:pointer; font-size:14px; font-family:inherit;
+  display:flex; justify-content:space-between; align-items:center;
+  transition:all 0.15s; min-height:50px;
+}
+.cat-itm:active { background:var(--gold-bg); border-color:var(--gold); }
+.cat-itm .pr { color:var(--gold); font-weight:700; font-size:13px; white-space:nowrap; margin-left:10px; }
+
+/* ===== LINE ITEMS ===== */
+.li {
+  display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;
+  align-items:end; margin-bottom:14px; padding-bottom:14px;
+}
+.li:not(:last-of-type) { border-bottom:1px solid var(--border); }
+.li .dc { grid-column:1/-1; }
+.li .lbl { font-size:9px; }
+.li input { padding:12px; font-size:15px; min-height:46px; }
+.rm-btn {
+  background:var(--red-bg); border:none; font-size:18px; color:var(--red); cursor:pointer;
+  padding:12px 16px; border-radius:var(--radius-sm); font-weight:700;
+  min-height:46px; min-width:46px; display:flex; align-items:center; justify-content:center;
+  transition:all 0.15s;
+}
+.rm-btn:active { background:var(--red); color:#fff; }
+
+/* ===== STATUS BADGES ===== */
+.badge {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:5px 12px; border-radius:20px; font-size:11px; font-weight:700;
+  text-transform:uppercase; letter-spacing:0.5px;
+}
+.badge::before { content:''; width:7px; height:7px; border-radius:50%; }
+.badge-lead { background:var(--blue-xl); color:var(--blue-l); }
+.badge-lead::before { background:var(--blue-l); }
+.badge-estimate { background:var(--gold-bg); color:#8b6914; }
+.badge-estimate::before { background:var(--gold); }
+.badge-contract { background:var(--purple-bg); color:var(--purple); }
+.badge-contract::before { background:var(--purple); }
+.badge-active { background:var(--green-bg); color:var(--green); }
+.badge-active::before { background:var(--green); animation:pulse 2s infinite; }
+.badge-done { background:#eee; color:#666; }
+.badge-done::before { background:#999; }
+.badge-invoice { background:var(--orange-bg); color:var(--orange); }
+.badge-invoice::before { background:var(--orange); }
+.badge-paid { background:var(--green-bg); color:var(--green); }
+.badge-paid::before { background:var(--green); }
+
+/* ===== JOB CARDS ===== */
+.job-card {
+  background:var(--card); border-radius:var(--radius); padding:18px;
+  margin-bottom:10px; box-shadow:var(--shadow); cursor:pointer;
+  border-left:4px solid var(--border); transition:all 0.2s;
+  animation:fadeUp 0.3s ease both;
+}
+.job-card:active { transform:scale(0.99); box-shadow:0 1px 4px rgba(0,0,0,0.04); }
+.job-card.s-lead { border-left-color:var(--blue-l); }
+.job-card.s-estimate { border-left-color:var(--gold); }
+.job-card.s-contract { border-left-color:var(--purple); }
+.job-card.s-active { border-left-color:var(--green); }
+.job-card.s-done { border-left-color:#999; }
+.job-card.s-invoice { border-left-color:var(--orange); }
+.job-card.s-paid { border-left-color:var(--green); }
+.job-name { font-size:16px; font-weight:700; color:var(--blue); }
+.job-client { font-size:13px; color:var(--text2); margin-top:3px; display:flex; align-items:center; gap:6px; }
+.job-row { display:flex; justify-content:space-between; align-items:center; margin-top:10px; }
+.job-amt { font-size:17px; font-weight:700; color:var(--blue); }
+
+/* ===== DASHBOARD STATS ===== */
+.stats-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+.stat-card {
+  background:var(--card); border-radius:var(--radius); padding:18px 14px;
+  text-align:center; box-shadow:var(--shadow); position:relative; overflow:hidden;
+}
+.stat-card::after {
+  content:''; position:absolute; bottom:0; left:0; right:0; height:3px;
+  background:var(--border);
+}
+.stat-card.gold::after { background:var(--gold); }
+.stat-card.green::after { background:var(--green); }
+.stat-card.blue::after { background:var(--blue); }
+.stat-card.orange::after { background:var(--orange); }
+.stat-num { font-size:26px; font-weight:700; color:var(--blue); }
+.stat-card.gold .stat-num { color:var(--gold); }
+.stat-card.green .stat-num { color:var(--green); }
+.stat-card.orange .stat-num { color:var(--orange); }
+.stat-lbl { font-size:10px; text-transform:uppercase; letter-spacing:1.5px; color:var(--gray); margin-top:4px; font-weight:600; }
+
+/* ===== STICKY ACTION BAR ===== */
+.action-bar {
+  position:sticky; bottom:calc(76px + var(--safe-b)); z-index:50;
+  background:linear-gradient(135deg,var(--blue),var(--blued));
+  border-radius:var(--radius); padding:18px 20px;
+  box-shadow:var(--shadow-lg); border:1px solid rgba(201,162,39,0.2);
+}
+.action-bar .row { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; color:#fff; }
+.action-bar .meta { font-size:12px; opacity:0.6; }
+.action-bar .total { font-size:24px; font-weight:700; }
+.action-bar .total-lbl { font-size:11px; opacity:0.5; margin-right:6px; }
+.action-bar .btns { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+
+/* ===== CONTRACT EDITOR ===== */
+.clause-card {
+  background:var(--card); border-radius:var(--radius-sm); padding:16px;
+  margin-bottom:10px; border:1px solid var(--border); transition:all 0.2s;
+}
+.clause-card.editing { border-color:var(--gold); box-shadow:0 0 0 3px rgba(201,162,39,0.1); }
+.clause-hdr {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-bottom:8px; cursor:pointer; min-height:36px;
+}
+.clause-hdr h3 { font-size:14px; font-weight:700; color:var(--blue); }
+.clause-actions { display:flex; gap:6px; }
+.clause-text { font-size:14px; line-height:1.7; color:var(--text2); }
+.clause-text textarea {
+  min-height:80px; font-size:14px; line-height:1.7; padding:12px;
+  border-color:var(--gold);
+}
+
+/* ===== PAYMENT SCHEDULE PICKER ===== */
+.pay-option {
+  padding:14px 16px; border:2px solid var(--border); border-radius:var(--radius-sm);
+  cursor:pointer; transition:all 0.2s; margin-bottom:8px;
+  display:flex; justify-content:space-between; align-items:center;
+  min-height:52px;
+}
+.pay-option.on { border-color:var(--gold); background:var(--gold-bg); }
+.pay-option:active { transform:scale(0.98); }
+.pay-option .label { font-weight:600; font-size:14px; }
+.pay-option .desc { font-size:12px; color:var(--text2); margin-top:2px; }
+
+/* ===== EMPTY STATE ===== */
+.empty { text-align:center; padding:48px 24px; }
+.empty-icon {
+  width:64px; height:64px; margin:0 auto 16px; border-radius:50%;
+  background:var(--bg2); display:flex; align-items:center; justify-content:center;
+}
+.empty-icon svg { width:28px; height:28px; stroke:var(--gray); fill:none; stroke-width:1.5; }
+.empty p { font-size:15px; color:var(--text2); margin-bottom:20px; line-height:1.5; }
+
+/* ===== TOAST ===== */
+.toast {
+  position:fixed; top:24px; left:50%; transform:translateX(-50%);
+  background:var(--green); color:#fff; padding:14px 28px; border-radius:var(--radius);
+  font-size:15px; font-weight:600; z-index:200; box-shadow:var(--shadow-lg);
+  animation:toast-in 0.3s ease, toast-out 0.3s ease 2.2s forwards;
+  display:flex; align-items:center; gap:8px;
+}
+.toast svg { width:20px; height:20px; stroke:currentColor; fill:none; stroke-width:2; }
+
+/* ===== MODAL ===== */
+.modal-bg {
+  position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5);
+  z-index:150; display:flex; align-items:flex-end; justify-content:center;
+  animation:fadeIn 0.2s ease; backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
+}
+.modal {
+  background:var(--card); border-radius:20px 20px 0 0; width:100%; max-width:600px;
+  max-height:85vh; overflow-y:auto; -webkit-overflow-scrolling:touch;
+  padding:24px 20px calc(24px + var(--safe-b)); animation:slideUp 0.3s ease;
+}
+.modal-title {
+  font-size:18px; font-weight:700; color:var(--blue); margin-bottom:16px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.modal-x {
+  background:var(--bg); border:none; width:36px; height:36px; border-radius:50%;
+  font-size:20px; color:var(--gray); cursor:pointer; display:flex;
+  align-items:center; justify-content:center;
+}
+
+/* ===== PRINT STYLES ===== */
+#print-view { display:none; }
+body.printing #app-ui, body.printing .bnav { display:none !important; }
+body.printing #print-view { display:block !important; }
+body.printing { background:#e0e0e0; padding-bottom:0; }
+
+.print-bar {
+  position:sticky; top:0; z-index:100;
+  background:linear-gradient(135deg,var(--blue),var(--blued));
+  padding:12px 16px; display:flex; justify-content:space-between; align-items:center;
+  box-shadow:var(--shadow-lg);
+}
+.print-bar button { padding:10px 20px; border-radius:8px; border:none; font-family:inherit; font-size:14px; font-weight:600; cursor:pointer; min-height:44px; }
+.print-bar .bb { background:rgba(255,255,255,0.1); color:#fff; }
+.print-bar .bp { background:var(--gold); color:var(--blued); }
+.print-bar span { color:#fff; font-size:14px; font-weight:500; }
+.hint { max-width:8.5in; margin:14px auto; background:#fff8e1; border:2px solid var(--gold); border-radius:var(--radius); padding:16px 20px; font-size:14px; color:#5d4700; line-height:1.6; }
+.hint b { font-weight:700; }
+.print-page {
+  max-width:8.5in; margin:14px auto 40px; background:#fff;
+  box-shadow:var(--shadow-lg); -webkit-print-color-adjust:exact; print-color-adjust:exact;
+}
+
+/* Print page inner */
+.pp-hdr{background:linear-gradient(135deg,#1a3a5c,#0d2540);padding:32px 32px 26px;display:flex;justify-content:space-between;align-items:flex-start}
+.pp-hdr h2{font-family:'Playfair Display',serif;font-size:28px;color:#fff}
+.pp-hdr .loc{color:#c9a227;font-size:12px;letter-spacing:3px;text-transform:uppercase;margin-top:3px}
+.pp-hdr .rc{text-align:right;color:#c8d6e5;font-size:12px;line-height:1.8}
+.pp-hdr .rc .ph{color:#fff;font-weight:600}
+.pp-gbar{height:4px;background:linear-gradient(90deg,#c9a227,#e8c84a,#c9a227)}
+.pp-body{padding:28px 32px}
+.pp-meta{display:flex;justify-content:space-between;margin-bottom:24px}
+.pp-lbl{font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#999;margin-bottom:6px}
+.pp-cn{font-size:18px;font-weight:700;color:#1a3a5c}
+.pp-d{font-size:13px;color:#555;margin-top:2px}
+.pp-et{font-family:'Playfair Display',serif;font-size:26px;color:#1a3a5c;font-weight:700}
+.pp-enum{font-size:12px;color:#777;margin-top:4px}
+.pp-badge{display:inline-block;margin-top:6px;background:#f4f1eb;padding:5px 14px;border-radius:6px;font-size:12px;color:#1a3a5c;font-weight:600}
+.pp-tbl{width:100%;border-collapse:collapse;margin-bottom:20px}
+.pp-tbl thead tr{background:#1a3a5c}
+.pp-tbl th{padding:11px 12px;text-align:left;color:#fff;font-size:11px;text-transform:uppercase;letter-spacing:1px;font-weight:600}
+.pp-tbl th:nth-child(2){text-align:center}.pp-tbl th:nth-child(3),.pp-tbl th:nth-child(4){text-align:right}
+.pp-tbl td{padding:10px 12px;border-bottom:1px solid #e0ddd6;font-size:13px}
+.pp-tbl td:nth-child(2){text-align:center}.pp-tbl td:nth-child(3){text-align:right}.pp-tbl td:nth-child(4){text-align:right;font-weight:600}
+.pp-tots{display:flex;justify-content:flex-end}
+.pp-tots-box{width:270px}
+.pp-tr{display:flex;justify-content:space-between;padding:7px 0;font-size:14px}
+.pp-tt{display:flex;justify-content:space-between;padding:14px 0 7px;font-size:22px;font-weight:700;color:#1a3a5c;border-top:2px solid #1a3a5c}
+.pp-dep{display:flex;justify-content:space-between;padding:8px 14px;background:#f4f1eb;border-radius:6px;font-size:13px;color:#1a3a5c;margin-top:6px}
+.pp-foot{padding:18px 32px;border-top:2px solid #c9a227;display:flex;justify-content:space-between;font-size:11px;color:#999}
+
+/* Contract print */
+.con-section{margin-bottom:18px}
+.con-section h3{font-size:14px;font-weight:700;color:#1a3a5c;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid #e0ddd6}
+.con-section p{font-size:13px;line-height:1.7;color:#444}
+.sig-line{margin-top:36px;padding-top:20px}
+.sig-row{display:flex;gap:48px;margin-bottom:28px}
+.sig-box{flex:1}
+.sig-box .line{border-bottom:1.5px solid #333;height:44px;margin-bottom:6px}
+.sig-box .sig-lbl{font-size:11px;color:#666;font-weight:500}
+
+@media(min-width:700px){
+  .fg{grid-template-columns:1fr 1fr}
+  .cat-list{grid-template-columns:1fr 1fr}
+  .li{grid-template-columns:2fr 90px 80px 120px 50px}
+  .li .dc{grid-column:1/1}
+  .stats-row{grid-template-columns:1fr 1fr 1fr 1fr}
+}
+@media print{
+  body,html{background:#fff!important}
+  #app-ui,.bnav{display:none!important}
+  #print-view{display:block!important}
+  .print-bar,.hint,.no-print{display:none!important}
+  .print-page{margin:0;box-shadow:none}
+}
+</style>
+</head>
+<body>
+
+<div id="app-ui">
+  <div class="topbar">
+    <div class="topbar-brand"><h1>JB Contracting</h1><div class="sub" id="page-title">Dashboard</div></div>
+    <div class="topbar-right" id="topbar-actions"></div>
+  </div>
+  <div class="gbar"></div>
+
+  <div class="page show" id="pg-dash"></div>
+  <div class="page" id="pg-est"></div>
+  <div class="page" id="pg-jobs"></div>
+  <div class="page" id="pg-contract"></div>
+  <div class="page" id="pg-invoice"></div>
+  <div class="page" id="pg-job-detail"></div>
+
+  <div class="bnav">
+    <button class="on" onclick="nav('dash')" id="nav-dash">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home
+    </button>
+    <button onclick="nav('est')" id="nav-est">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Estimate
+    </button>
+    <button onclick="nav('jobs')" id="nav-jobs">
+      <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>Jobs
+    </button>
+    <button onclick="nav('contract')" id="nav-contract">
+      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Contract
+    </button>
+    <button onclick="nav('invoice')" id="nav-invoice">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Invoice
+    </button>
+  </div>
+</div>
+
+<div id="print-view"></div>
+<div id="modal-root"></div>
+<div id="toast-root"></div>
+
+<script>
+// ============================================================
+//  JB CONTRACTING PRO - COMPLETE BUSINESS APP
+// ============================================================
+
+// ===== DATA LAYER =====
+let DB = { jobs: [], nid: 1 };
+function save() { try { localStorage.setItem('jb_db', JSON.stringify(DB)); } catch(e) {} }
+function load() { try { const d = localStorage.getItem('jb_db'); if(d) DB = JSON.parse(d); } catch(e) {} }
+load();
+
+const CATS={"Decks & Patios":[{n:"Composite Deck (per sq ft)",u:"sq ft",r:35},{n:"Wood Deck (per sq ft)",u:"sq ft",r:28},{n:"Covered Patio (per sq ft)",u:"sq ft",r:45},{n:"Pergola (standard)",u:"each",r:4500},{n:"Pergola (custom/large)",u:"each",r:8000},{n:"Concrete Patio (per sq ft)",u:"sq ft",r:12},{n:"Stamped Concrete (per sq ft)",u:"sq ft",r:18},{n:"Porch Build/Remodel",u:"each",r:6000},{n:"Deck Staining/Sealing",u:"sq ft",r:4},{n:"Railing (per linear ft)",u:"lin ft",r:65}],"Roofing":[{n:"Asphalt Shingle Roof (per sq)",u:"square",r:450},{n:"Metal Roof (per sq)",u:"square",r:850},{n:"Roof Repair (minor)",u:"each",r:500},{n:"Roof Repair (major)",u:"each",r:2000},{n:"Gutter Install (per lin ft)",u:"lin ft",r:12},{n:"Gutter Guards (per lin ft)",u:"lin ft",r:8},{n:"Soffit/Fascia Repair",u:"lin ft",r:18},{n:"Skylight Installation",u:"each",r:2500},{n:"Roof Tear-off (per sq)",u:"square",r:150},{n:"Flashing Repair",u:"each",r:350}],"Siding":[{n:"Vinyl Siding (per sq ft)",u:"sq ft",r:8},{n:"Fiber Cement Siding (per sq ft)",u:"sq ft",r:12},{n:"Wood Siding (per sq ft)",u:"sq ft",r:14},{n:"Siding Repair (small)",u:"each",r:400},{n:"Siding Repair (large)",u:"each",r:1200},{n:"Trim Work (per lin ft)",u:"lin ft",r:10},{n:"House Wrap Install",u:"sq ft",r:2}],"Fencing":[{n:"Wood Fence (per lin ft)",u:"lin ft",r:35},{n:"Metal/Iron Fence (per lin ft)",u:"lin ft",r:55},{n:"Chain Link Fence (per lin ft)",u:"lin ft",r:20},{n:"Gate Installation",u:"each",r:500},{n:"Gate Opener (automatic)",u:"each",r:1800},{n:"Fence Staining (per lin ft)",u:"lin ft",r:5},{n:"Post Replacement",u:"each",r:150}],"Hardscape & Landscape":[{n:"Concrete Slab (per sq ft)",u:"sq ft",r:10},{n:"Retaining Wall (per lin ft)",u:"lin ft",r:85},{n:"Walkway (per sq ft)",u:"sq ft",r:15},{n:"Paver Patio (per sq ft)",u:"sq ft",r:22},{n:"French Drain (per lin ft)",u:"lin ft",r:30},{n:"Grading/Leveling (per sq ft)",u:"sq ft",r:3},{n:"Sod Installation (per sq ft)",u:"sq ft",r:2},{n:"Garden Bed Install",u:"each",r:800}],"General / Other":[{n:"Demolition/Haul-off",u:"each",r:750},{n:"Dumpster Rental",u:"each",r:450},{n:"Permit Fees",u:"each",r:300},{n:"Custom Labor (per hour)",u:"hour",r:75},{n:"Material Delivery",u:"each",r:150},{n:"Site Cleanup",u:"each",r:250},{n:"Custom Item",u:"each",r:0}]};
+
+const CONTRACT_TERMS = {
+"Decks & Patios":{
+  clauses:[
+    {title:"Scope of Work",text:"Construction of deck/patio structure as specified in the attached estimate, including all materials, labor, and standard hardware. Work includes site preparation, framing, decking installation, and finishing.",editable:true},
+    {title:"Materials",text:"All lumber, composite decking, fasteners, concrete footings, and finishing materials as specified. Material selections subject to availability; Contractor will notify Owner of any substitutions of equal or greater quality.",editable:true},
+    {title:"Warranty",text:"JB Contracting warrants all workmanship for a period of two (2) years from the date of substantial completion. Manufacturer warranties on materials are passed through to the Owner. This warranty does not cover damage from misuse, neglect, acts of nature, or normal wear and tear.",editable:true},
+    {title:"Timeline",text:"Work is estimated to begin within 2-4 weeks of signed contract and deposit receipt. Timeline may be extended due to weather, material delays, permitting, or unforeseen site conditions.",editable:true},
+    {title:"Exclusions",text:"Deck staining/sealing, electrical (lighting), plumbing, and landscaping are not included unless explicitly listed in the estimate. Changes to the approved design require a written change order.",editable:true}
+  ]
+},
+"Roofing":{
+  clauses:[
+    {title:"Scope of Work",text:"Removal of existing roofing material (if applicable), inspection of roof deck, repair of damaged decking, installation of underlayment, new roofing material, flashing, ridge vents, and cleanup of all debris.",editable:true},
+    {title:"Materials",text:"Roofing shingles/metal panels, synthetic underlayment, flashing, ridge caps, drip edge, roofing nails/fasteners, and sealants as specified. All materials meet or exceed local building code requirements.",editable:true},
+    {title:"Warranty",text:"JB Contracting warrants all workmanship for a period of five (5) years from date of completion. Manufacturer warranties on roofing materials are passed through to the Owner. This warranty does not cover damage from storms, falling trees, or acts of nature.",editable:true},
+    {title:"Timeline",text:"Work is estimated to begin within 1-3 weeks of signed contract and deposit receipt. Roofing work is weather-dependent and may be delayed by rain, high winds, or extreme heat.",editable:true},
+    {title:"Exclusions",text:"Repairs to roof decking beyond standard expectations, gutter work, skylight installation, solar panel removal/reinstallation, and interior damage repair are not included unless explicitly listed.",editable:true}
+  ]
+},
+"Siding":{
+  clauses:[
+    {title:"Scope of Work",text:"Removal of existing siding (if applicable), inspection and repair of wall sheathing, installation of house wrap/moisture barrier, new siding installation, trim work, and caulking.",editable:true},
+    {title:"Materials",text:"Siding panels/planks, house wrap, J-channel, corner posts, trim pieces, fasteners, and caulk as specified.",editable:true},
+    {title:"Warranty",text:"JB Contracting warrants all workmanship for a period of three (3) years from date of completion. Manufacturer warranties are passed through to the Owner.",editable:true},
+    {title:"Timeline",text:"Work is estimated to begin within 2-4 weeks of signed contract and deposit receipt. Timeline may vary based on home size and weather conditions.",editable:true},
+    {title:"Exclusions",text:"Painting, window/door replacement, electrical work, structural repairs to wall framing, and insulation are not included unless listed.",editable:true}
+  ]
+},
+"Fencing":{
+  clauses:[
+    {title:"Scope of Work",text:"Installation of fence as specified, including post setting with concrete footings, rails, pickets/panels, and gate(s). Includes site layout, utility marking coordination, and cleanup.",editable:true},
+    {title:"Materials",text:"Fence posts, rails, pickets or panels, concrete for footings, gate hardware, post caps, and fasteners as specified. Cedar, pine, or metal as selected by Owner.",editable:true},
+    {title:"Warranty",text:"JB Contracting warrants all workmanship for a period of two (2) years from date of completion. Wood fence warranty does not cover natural weathering, warping, or discoloration inherent to wood products.",editable:true},
+    {title:"Timeline",text:"Work is estimated to begin within 1-3 weeks of signed contract and deposit receipt. Owner is responsible for confirming property lines and any HOA requirements prior to start.",editable:true},
+    {title:"Exclusions",text:"Staining/sealing, property survey, tree/brush removal, grading, and electrical (gate openers) are not included unless listed.",editable:true}
+  ]
+},
+"Hardscape & Landscape":{
+  clauses:[
+    {title:"Scope of Work",text:"Installation of hardscape/landscape features as specified, including excavation, grading, base preparation, material installation, and site cleanup.",editable:true},
+    {title:"Materials",text:"Pavers, stone, concrete, gravel, fill dirt, plants, sod, edging, drainage materials as specified. Plant species subject to seasonal availability.",editable:true},
+    {title:"Warranty",text:"JB Contracting warrants all workmanship for one (1) year from completion. Plant material is warranted for 90 days with proper Owner maintenance.",editable:true},
+    {title:"Timeline",text:"Work is estimated to begin within 2-4 weeks of signed contract and deposit receipt. Landscape work may be seasonal and weather-dependent.",editable:true},
+    {title:"Exclusions",text:"Irrigation systems, landscape lighting, retaining walls over 4 feet (engineering required), and ongoing maintenance are not included unless listed.",editable:true}
+  ]
+},
+"General":{
+  clauses:[
+    {title:"Scope of Work",text:"Work to be performed as described in the attached estimate and scope of work. All labor, materials, and equipment necessary to complete the described work are included.",editable:true},
+    {title:"Materials",text:"All materials as specified in the attached estimate. Contractor reserves the right to substitute materials of equal or greater quality if specified materials become unavailable.",editable:true},
+    {title:"Warranty",text:"JB Contracting warrants all workmanship for one (1) year from date of substantial completion. Manufacturer warranties are passed through to the Owner.",editable:true},
+    {title:"Timeline",text:"Work is estimated to begin within 2-4 weeks of signed contract and deposit receipt. Timeline may be extended due to weather, material delays, or unforeseen conditions.",editable:true},
+    {title:"Exclusions",text:"Any work not explicitly described in the attached estimate is excluded. Changes require a written change order signed by both parties.",editable:true}
+  ]
+}
+};
+
+// Shared clauses appended to every contract
+const SHARED_CLAUSES = [
+  {title:"Change Orders",text:"Any changes to the scope of work described above must be agreed upon in writing by both parties. Change orders may affect the total project cost and timeline. No additional work will be performed without a signed change order.",editable:true},
+  {title:"Cancellation",text:"Either party may cancel this agreement with written notice. If Owner cancels after work has begun, Owner is responsible for payment of all work completed and materials purchased to date. The deposit is non-refundable once materials have been ordered.",editable:true},
+  {title:"Liability & Insurance",text:"JB Contracting maintains general liability insurance and workers' compensation coverage. Contractor is not liable for pre-existing conditions, damage from acts of nature, or issues arising from Owner modifications after project completion.",editable:true},
+  {title:"Dispute Resolution",text:"Any disputes arising from this agreement shall first be addressed through good-faith negotiation between the parties. If unresolved, disputes shall be submitted to mediation before any legal action is pursued.",editable:true}
+];
+
+const PAYMENT_SCHEDULES = [
+  {id:'5050',label:'50 / 50',desc:'50% deposit, 50% upon completion',detail:'50% due at contract signing, remaining 50% due upon substantial completion.'},
+  {id:'303040',label:'30 / 30 / 40',desc:'30% deposit, 30% midway, 40% at completion',detail:'30% due at contract signing, 30% due at project midpoint, remaining 40% due upon substantial completion.'},
+  {id:'334',label:'1/3 - 1/3 - 1/3',desc:'Equal thirds throughout project',detail:'33.3% due at contract signing, 33.3% due at project midpoint, final 33.3% due upon substantial completion.'},
+  {id:'full',label:'100% on completion',desc:'Full payment when job is done',detail:'Full payment is due upon substantial completion of all work described in this agreement.'},
+  {id:'custom',label:'Custom',desc:'Write your own terms',detail:''}
+];
+
+const STATUSES = ['lead','estimate','contract','active','done','invoice','paid'];
+const STATUS_LABELS = {lead:'New Lead',estimate:'Estimate Sent',contract:'Contract Signed',active:'In Progress',done:'Completed',invoice:'Invoiced',paid:'Paid'};
+
+// ===== HELPERS =====
+const $=s=>document.getElementById(s);
+const fmt=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(n);
+const esc=s=>s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'):'';
+const today=()=>new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+
+function toast(msg){
+  $('toast-root').innerHTML='<div class="toast"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>'+msg+'</div>';
+  setTimeout(()=>$('toast-root').innerHTML='',2600);
+}
+function showModal(title,content){
+  $('modal-root').innerHTML='<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal"><div class="modal-title"><span>'+title+'</span><button class="modal-x" onclick="closeModal()">&times;</button></div>'+content+'</div></div>';
+}
+function closeModal(){$('modal-root').innerHTML='';}
+
+// ===== NAVIGATION =====
+let curPage='dash';
+function nav(pg){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('show'));
+  document.querySelectorAll('.bnav button').forEach(b=>b.classList.remove('on'));
+  $('pg-'+pg).classList.add('show');
+  $('nav-'+pg).classList.add('on');
+  curPage=pg;
+  const titles={dash:'Dashboard',est:'Estimate Builder',jobs:'Jobs & Customers',contract:'Contract Generator',invoice:'Invoice Generator'};
+  $('page-title').textContent=titles[pg]||'';
+  $('topbar-actions').innerHTML='';
+  if(pg==='dash')renderDash();
+  if(pg==='est')renderEst();
+  if(pg==='jobs')renderJobs();
+  if(pg==='contract')renderContract();
+  if(pg==='invoice')renderInvoice();
+  window.scrollTo(0,0);
+}
+
+// ===== ESTIMATE STATE =====
+let E={cn:'',ce:'',cp:'',ca:'',pn:'',notes:'',tax:0,dep:50,svc:'General',items:[{id:1,n:'',q:1,r:0,u:'each'}],catOpen:false,activeCat:null,nid:2};
+const eSub=()=>E.items.reduce((a,i)=>a+i.q*i.r,0);
+const eTax=()=>eSub()*(E.tax/100);
+const eTot=()=>eSub()+eTax();
+const eOk=()=>E.cn&&E.items.some(i=>i.n);
+
+// ===== DASHBOARD =====
+function renderDash(){
+  const j=DB.jobs, ac=j.filter(x=>x.status==='active').length, ld=j.filter(x=>x.status==='lead').length;
+  const rev=j.filter(x=>x.status==='paid').reduce((a,x)=>a+x.total,0);
+  const pend=j.filter(x=>['invoice','done','active'].includes(x.status)).reduce((a,x)=>a+x.total,0);
+
+  let recent='';
+  if(!j.length){
+    recent='<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><p>No jobs yet — create your first estimate to get started!</p><button class="btn btn-gold" onclick="nav(\'est\')">Create Estimate</button></div>';
+  } else {
+    recent=j.slice().reverse().slice(0,6).map((x,i)=>'<div class="job-card s-'+x.status+' anim anim-d'+Math.min(i,4)+'" onclick="viewJob('+x.id+')"><div class="job-name">'+esc(x.pn||x.svc+' Project')+'</div><div class="job-client">'+esc(x.cn)+(x.cp?' · '+esc(x.cp):'')+'</div><div class="job-row"><span class="badge badge-'+x.status+'">'+STATUS_LABELS[x.status]+'</span><span class="job-amt">'+fmt(x.total)+'</span></div></div>').join('');
+  }
+
+  $('pg-dash').innerHTML=
+    '<div class="stats-row anim">'+
+      '<div class="stat-card blue"><div class="stat-num">'+ac+'</div><div class="stat-lbl">Active</div></div>'+
+      '<div class="stat-card orange"><div class="stat-num">'+ld+'</div><div class="stat-lbl">Leads</div></div>'+
+      '<div class="stat-card gold"><div class="stat-num">'+fmt(pend)+'</div><div class="stat-lbl">Pipeline</div></div>'+
+      '<div class="stat-card green"><div class="stat-num">'+fmt(rev)+'</div><div class="stat-lbl">Collected</div></div>'+
+    '</div>'+
+    '<div class="card anim anim-d1"><div class="card-t"><span>Recent Activity</span><span class="count">'+j.length+' total</span></div>'+recent+'</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" class="anim anim-d2">'+
+      '<button class="btn btn-gold btn-full" onclick="nav(\'est\')"><svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Estimate</button>'+
+      '<button class="btn btn-blue btn-full" onclick="addLeadModal()"><svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg> Add Lead</button>'+
+    '</div>';
+}
+
+function addLeadModal(){
+  showModal('Add New Lead',
+    '<div class="fg"><div><label class="lbl">Client Name *</label><input id="ld-n" placeholder="John Smith"></div><div><label class="lbl">Phone</label><input id="ld-p" placeholder="(512) 555-0000" type="tel"></div><div><label class="lbl">Email</label><input id="ld-e" placeholder="email@example.com" type="email"></div><div><label class="lbl">Address</label><input id="ld-a" placeholder="123 Main St, Austin TX"></div><div class="full"><label class="lbl">Service Needed</label><select id="ld-s"><option>Decks & Patios</option><option>Roofing</option><option>Siding</option><option>Fencing</option><option>Hardscape & Landscape</option><option>General</option></select></div><div class="full"><label class="lbl">Notes</label><textarea id="ld-nt" placeholder="What does the customer need?" rows="3"></textarea></div></div><button class="btn btn-gold btn-full" style="margin-top:14px" onclick="saveLead()">Save Lead</button>'
+  );
+}
+function saveLead(){
+  const n=$('ld-n').value;if(!n){toast('Enter a name');return;}
+  DB.jobs.push({id:DB.nid++,cn:n,cp:$('ld-p').value,ce:$('ld-e').value,ca:$('ld-a').value,svc:$('ld-s').value,pn:'',notes:$('ld-nt').value,items:[],total:0,tax:0,dep:50,status:'lead',created:new Date().toISOString(),history:[{d:new Date().toISOString(),a:'Lead created'}]});
+  save();closeModal();toast('Lead saved!');renderDash();
+}
+
+// ===== ESTIMATE BUILDER =====
+function renderEst(){
+  $('pg-est').innerHTML=
+    '<div class="card anim"><div class="card-t">Client Information</div><div class="fg">'+
+    '<div><label class="lbl">Client Name *</label><input value="'+esc(E.cn)+'" oninput="E.cn=this.value;eBar()" placeholder="John & Jane Smith"></div>'+
+    '<div><label class="lbl">Project Name</label><input value="'+esc(E.pn)+'" oninput="E.pn=this.value" placeholder="Backyard Deck Build"></div>'+
+    '<div><label class="lbl">Email</label><input value="'+esc(E.ce)+'" oninput="E.ce=this.value" type="email" placeholder="email@example.com"></div>'+
+    '<div><label class="lbl">Phone</label><input value="'+esc(E.cp)+'" oninput="E.cp=this.value" type="tel" placeholder="(512) 555-0000"></div>'+
+    '<div class="full"><label class="lbl">Property Address</label><input value="'+esc(E.ca)+'" oninput="E.ca=this.value" placeholder="123 Main St, Austin TX 78701"></div>'+
+    '<div class="full"><label class="lbl">Service Type</label><select onchange="E.svc=this.value">'+['Decks & Patios','Roofing','Siding','Fencing','Hardscape & Landscape','General'].map(s=>'<option'+(E.svc===s?' selected':'')+'>'+s+'</option>').join('')+'</select></div>'+
+    '</div></div>'+
+    '<div class="card anim anim-d1"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div class="card-t" style="margin:0">Line Items</div><button class="btn btn-blue btn-sm" onclick="eToggleCat()"><svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Catalog</button></div><div id="e-cat"></div><div id="e-items"></div><button class="btn btn-ghost btn-full btn-sm" style="margin-top:6px" onclick="eAddBlank()">+ Add Blank Line</button></div>'+
+    '<div class="card anim anim-d2"><div class="card-t">Settings</div><div class="fg"><div><label class="lbl">Tax Rate (%)</label><input type="number" min="0" step="0.25" value="'+E.tax+'" oninput="E.tax=parseFloat(this.value)||0;eBar()"></div><div><label class="lbl">Deposit (%)</label><input type="number" min="0" max="100" value="'+E.dep+'" oninput="E.dep=parseFloat(this.value)||0"></div></div></div>'+
+    '<div class="card anim anim-d3"><div class="card-t">Notes / Scope</div><textarea oninput="E.notes=this.value" placeholder="Scope of work details, materials, timeline, exclusions...">'+esc(E.notes)+'</textarea></div>'+
+    '<div class="action-bar anim anim-d4"><div class="row"><span class="meta" id="e-meta"></span><span><span class="total-lbl">TOTAL</span><span class="total" id="e-amt"></span></span></div><div class="btns"><button class="btn btn-gold btn-full" id="e-gen" onclick="ePrint()" disabled>Save PDF</button><button class="btn btn-full" style="background:rgba(255,255,255,0.12);color:#fff" onclick="eSaveJob()">Save Job</button></div></div>';
+  eRenderItems();eBar();
+}
+function eRenderItems(){
+  const el=$('e-items');if(!el)return;
+  el.innerHTML=E.items.map(it=>'<div class="li"><div class="dc"><label class="lbl">Description</label><input value="'+esc(it.n)+'" oninput="eUI('+it.id+',\'n\',this.value)" placeholder="Service description"></div><div><label class="lbl">Qty</label><input type="number" min="0" step="any" value="'+it.q+'" oninput="eUI('+it.id+',\'q\',parseFloat(this.value)||0)" style="text-align:center"></div><div><label class="lbl">Unit</label><input value="'+esc(it.u)+'" oninput="eUI('+it.id+',\'u\',this.value)" style="text-align:center"></div><div><label class="lbl">Rate ($)</label><input type="number" min="0" step="0.01" value="'+it.r+'" oninput="eUI('+it.id+',\'r\',parseFloat(this.value)||0)" style="text-align:right"></div><button class="rm-btn" onclick="eRI('+it.id+')">&times;</button></div>').join('');
+}
+function eUI(id,f,v){const it=E.items.find(i=>i.id===id);if(it){it[f]=v;eBar();}}
+function eRI(id){if(E.items.length>1){E.items=E.items.filter(i=>i.id!==id);eRenderItems();eBar();}}
+function eAddBlank(){E.items.push({id:E.nid++,n:'',q:1,r:0,u:'each'});eRenderItems();}
+function eBar(){
+  const el=$('e-meta');if(!el)return;
+  el.textContent='Sub: '+fmt(eSub())+(E.tax>0?' · Tax: '+fmt(eTax()):'');
+  $('e-amt').textContent=fmt(eTot());
+  $('e-gen').disabled=!eOk();
+}
+function eToggleCat(){E.catOpen=!E.catOpen;E.activeCat=null;eRenderCat();}
+function eSetCat(c){E.activeCat=c;eRenderCat();}
+function eRenderCat(){
+  const el=$('e-cat');if(!el)return;
+  if(!E.catOpen){el.innerHTML='';return;}
+  let items='';
+  if(E.activeCat&&CATS[E.activeCat]){
+    items='<div class="cat-list">'+CATS[E.activeCat].map(s=>'<button class="cat-itm" onclick="eAddCat(\''+esc(s.n).replace(/'/g,"\\'")+'\',\''+s.u+'\','+s.r+')"><span>'+s.n+'</span><span class="pr">'+fmt(s.r)+'/'+s.u+'</span></button>').join('')+'</div>';
+  }
+  el.innerHTML='<div class="cat-panel"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span style="font-size:14px;font-weight:700;color:var(--blue)">Select a Service</span><button class="modal-x" onclick="eToggleCat()">&times;</button></div><div class="cat-tabs">'+Object.keys(CATS).map(c=>'<button class="ct'+(E.activeCat===c?' on':'')+'" onclick="eSetCat(\''+esc(c)+'\')">'+c+'</button>').join('')+'</div>'+items+'</div>';
+}
+function eAddCat(n,u,r){
+  if(E.items.length===1&&!E.items[0].n)E.items[0]={id:E.items[0].id,n,q:1,r,u};
+  else E.items.push({id:E.nid++,n,q:1,r,u});
+  E.catOpen=false;E.activeCat=null;eRenderCat();eRenderItems();eBar();
+}
+function eSaveJob(){
+  if(!E.cn){toast('Enter a client name');return;}
+  DB.jobs.push({id:DB.nid++,cn:E.cn,ce:E.ce,cp:E.cp,ca:E.ca,svc:E.svc,pn:E.pn,notes:E.notes,items:JSON.parse(JSON.stringify(E.items.filter(i=>i.n))),total:eTot(),tax:E.tax,dep:E.dep,status:'estimate',created:new Date().toISOString(),history:[{d:new Date().toISOString(),a:'Estimate created — '+fmt(eTot())}]});
+  save();toast('Job saved!');
+  E={cn:'',ce:'',cp:'',ca:'',pn:'',notes:'',tax:0,dep:50,svc:'General',items:[{id:E.nid++,n:'',q:1,r:0,u:'each'}],catOpen:false,activeCat:null,nid:E.nid+1};
+  renderEst();
+}
+
+// ===== JOBS / CRM =====
+function renderJobs(){
+  const j=DB.jobs;
+  let filterHTML='<div class="cat-tabs" style="margin-bottom:14px"><button class="ct on" onclick="fJobs(\'all\',this)">All ('+j.length+')</button>';
+  STATUSES.forEach(s=>{const c=j.filter(x=>x.status===s).length;if(c)filterHTML+='<button class="ct" onclick="fJobs(\''+s+'\',this)">'+STATUS_LABELS[s]+' ('+c+')</button>';});
+  filterHTML+='</div>';
+
+  const searchHTML='<div class="search-wrap"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input placeholder="Search jobs, clients, addresses..." oninput="searchJobs(this.value)"></div>';
+
+  let list='';
+  if(!j.length){list='<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div><p>No jobs yet. Create an estimate or add a lead.</p></div>';}
+  else{list=j.slice().reverse().map((x,i)=>'<div class="job-card s-'+x.status+' anim" style="animation-delay:'+Math.min(i*0.04,0.3)+'s" onclick="viewJob('+x.id+')" data-status="'+x.status+'" data-search="'+(esc(x.cn)+' '+esc(x.pn)+' '+esc(x.ca)+' '+esc(x.svc)).toLowerCase()+'"><div class="job-name">'+esc(x.pn||x.svc+' Project')+'</div><div class="job-client">'+esc(x.cn)+(x.cp?' · '+esc(x.cp):'')+'</div><div class="job-row"><span class="badge badge-'+x.status+'">'+STATUS_LABELS[x.status]+'</span><span class="job-amt">'+fmt(x.total)+'</span></div></div>').join('');}
+
+  $('pg-jobs').innerHTML=searchHTML+filterHTML+'<div id="jobs-list">'+list+'</div>';
+}
+function fJobs(s,btn){
+  document.querySelectorAll('#pg-jobs .ct').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('#jobs-list .job-card').forEach(c=>{c.style.display=(s==='all'||c.dataset.status===s)?'':'none';});
+}
+function searchJobs(q){
+  q=q.toLowerCase();
+  document.querySelectorAll('#jobs-list .job-card').forEach(c=>{c.style.display=(!q||c.dataset.search.includes(q))?'':'none';});
+}
+
+function viewJob(id){
+  const j=DB.jobs.find(x=>x.id===id);if(!j)return;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('show'));
+  $('pg-job-detail').classList.add('show');
+  $('page-title').textContent='Job Details';
+  const sOpts=STATUSES.map(s=>'<option value="'+s+'"'+(j.status===s?' selected':'')+'>'+STATUS_LABELS[s]+'</option>').join('');
+
+  $('pg-job-detail').innerHTML=
+    '<button class="btn btn-ghost btn-sm" style="margin-bottom:14px" onclick="nav(\'jobs\')"><svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2"><polyline points="15 18 9 12 15 6"/></svg> Back</button>'+
+    '<div class="card anim"><div class="card-t"><span>'+esc(j.pn||j.svc+' Project')+'</span><span class="badge badge-'+j.status+'">'+STATUS_LABELS[j.status]+'</span></div>'+
+    '<div style="font-size:17px;font-weight:700;color:var(--blue)">'+esc(j.cn)+'</div>'+
+    (j.cp?'<div style="font-size:14px;color:var(--text2);margin-top:4px;display:flex;align-items:center;gap:6px"><svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg><a href="tel:'+esc(j.cp)+'" style="color:var(--blue);text-decoration:none">'+esc(j.cp)+'</a></div>':'')+
+    (j.ce?'<div style="font-size:14px;color:var(--text2);margin-top:2px">'+esc(j.ce)+'</div>':'')+
+    (j.ca?'<div style="font-size:14px;color:var(--text2);margin-top:2px">'+esc(j.ca)+'</div>':'')+
+    '<div style="margin-top:12px;font-size:24px;font-weight:700;color:var(--blue)">'+fmt(j.total)+'</div>'+
+    '</div>'+
+    '<div class="card anim anim-d1"><div class="card-t">Update Status</div><select onchange="updStatus('+j.id+',this.value)" style="font-size:16px;font-weight:600">'+sOpts+'</select></div>'+
+    (j.items&&j.items.length?'<div class="card anim anim-d2"><div class="card-t">Line Items</div>'+j.items.map(i=>'<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:14px"><div><span style="font-weight:600">'+esc(i.n)+'</span><br><span style="font-size:12px;color:var(--text2)">'+i.q+' '+esc(i.u)+' × '+fmt(i.r)+'</span></div><span style="font-weight:700;color:var(--blue)">'+fmt(i.q*i.r)+'</span></div>').join('')+'</div>':'')+
+    (j.notes?'<div class="card anim anim-d3"><div class="card-t">Notes</div><div style="font-size:14px;color:var(--text2);white-space:pre-wrap;line-height:1.6">'+esc(j.notes)+'</div></div>':'')+
+    '<div class="card anim anim-d3"><div class="card-t">History</div>'+(j.history||[]).map(h=>'<div style="font-size:13px;padding:6px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between"><span>'+esc(h.a)+'</span><span style="color:var(--gray);font-size:12px">'+new Date(h.d).toLocaleDateString()+'</span></div>').join('')+'</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px" class="anim anim-d4">'+
+    '<button class="btn btn-gold btn-full" onclick="pJobEst('+j.id+')">Estimate</button>'+
+    '<button class="btn btn-blue btn-full" onclick="pJobCon('+j.id+')">Contract</button>'+
+    '<button class="btn btn-orange btn-full" onclick="pJobInv('+j.id+')">Invoice</button>'+
+    '<button class="btn btn-red btn-full" onclick="delJob('+j.id+')">Delete</button>'+
+    '</div>';
+}
+function updStatus(id,s){const j=DB.jobs.find(x=>x.id===id);if(!j)return;j.status=s;j.history.push({d:new Date().toISOString(),a:'Status → '+STATUS_LABELS[s]});save();toast('Updated!');viewJob(id);}
+function delJob(id){if(!confirm('Delete this job?'))return;DB.jobs=DB.jobs.filter(j=>j.id!==id);save();toast('Deleted');nav('jobs');}
+
+// ===== CONTRACT GENERATOR =====
+let CON={jid:null,svc:'General',dur:'2-3 weeks',pay:'5050',payCustom:'',clauses:null,customClauses:[]};
+
+function renderContract(){
+  const jOpts=DB.jobs.length?DB.jobs.map(j=>'<option value="'+j.id+'">'+esc(j.cn)+' — '+esc(j.pn||j.svc)+'</option>').join(''):'';
+  const payHTML=PAYMENT_SCHEDULES.map(p=>'<div class="pay-option'+(CON.pay===p.id?' on':'')+'" onclick="setPay(\''+p.id+'\')"><div><div class="label">'+p.label+'</div><div class="desc">'+p.desc+'</div></div><div style="width:24px;height:24px;border-radius:50%;border:2px solid '+(CON.pay===p.id?'var(--gold)':'var(--border)')+';display:flex;align-items:center;justify-content:center">'+(CON.pay===p.id?'<div style="width:12px;height:12px;border-radius:50%;background:var(--gold)"></div>':'')+'</div></div>').join('');
+
+  // Load clauses for current service type
+  if(!CON.clauses||CON._lastSvc!==CON.svc){
+    const t=CONTRACT_TERMS[CON.svc]||CONTRACT_TERMS['General'];
+    CON.clauses=JSON.parse(JSON.stringify(t.clauses.concat(SHARED_CLAUSES)));
+    CON._lastSvc=CON.svc;
+    CON.customClauses=[];
+  }
+
+  let clauseHTML=CON.clauses.map((c,i)=>'<div class="clause-card" id="clause-'+i+'"><div class="clause-hdr"><h3>'+(i+1)+'. '+esc(c.title)+'</h3><div class="clause-actions"><button class="btn btn-sm btn-ghost" style="padding:8px 12px;min-height:36px;font-size:12px" onclick="editClause('+i+')">Edit</button></div></div><div class="clause-text" id="clause-text-'+i+'"><p>'+esc(c.text)+'</p></div></div>').join('');
+
+  CON.customClauses.forEach((c,i)=>{
+    const idx=CON.clauses.length+i;
+    clauseHTML+='<div class="clause-card" id="clause-'+idx+'"><div class="clause-hdr"><h3>'+(idx+1)+'. '+esc(c.title)+'</h3><div class="clause-actions"><button class="btn btn-sm btn-ghost" style="padding:8px 12px;min-height:36px;font-size:12px" onclick="editCustom('+i+')">Edit</button><button class="btn btn-sm btn-red" style="padding:8px 12px;min-height:36px;font-size:12px" onclick="rmCustom('+i+')">Remove</button></div></div><div class="clause-text"><p>'+esc(c.text)+'</p></div></div>';
+  });
+
+  $('pg-contract').innerHTML=
+    '<div class="card anim"><div class="card-t">Contract Setup</div><div class="fg">'+
+    (DB.jobs.length?'<div class="full"><label class="lbl">Link to Job (optional)</label><select id="con-job" onchange="conLoadJob(this.value)"><option value="">— Select a job —</option>'+jOpts+'</select></div>':'')+
+    '<div><label class="lbl">Service Type *</label><select id="con-svc" onchange="conSetSvc(this.value)">'+['Decks & Patios','Roofing','Siding','Fencing','Hardscape & Landscape','General'].map(s=>'<option'+(CON.svc===s?' selected':'')+'>'+s+'</option>').join('')+'</select></div>'+
+    '<div><label class="lbl">Est. Duration</label><input id="con-dur" value="'+esc(CON.dur)+'" oninput="CON.dur=this.value" placeholder="2-3 weeks"></div>'+
+    '</div></div>'+
+    '<div class="card anim anim-d1"><div class="card-t">Client Information</div><div class="fg">'+
+    '<div><label class="lbl">Client Name *</label><input id="con-n" placeholder="John Smith"></div>'+
+    '<div><label class="lbl">Phone</label><input id="con-p" placeholder="(512) 555-0000" type="tel"></div>'+
+    '<div class="full"><label class="lbl">Property Address</label><input id="con-a" placeholder="123 Main St, Austin TX"></div>'+
+    '</div></div>'+
+    '<div class="card anim anim-d2"><div class="card-t">Payment Schedule</div>'+payHTML+
+    (CON.pay==='custom'?'<div style="margin-top:8px"><label class="lbl">Custom Payment Terms</label><textarea id="con-paycustom" oninput="CON.payCustom=this.value" placeholder="Describe your payment schedule...">'+esc(CON.payCustom)+'</textarea></div>':'')+
+    '</div>'+
+    '<div class="card anim anim-d3"><div class="card-t"><span>Contract Terms</span><span class="count">Tap Edit to customize</span></div>'+clauseHTML+
+    '<button class="btn btn-out btn-full btn-sm" style="margin-top:10px" onclick="addClauseModal()"><svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Custom Clause</button></div>'+
+    '<button class="btn btn-gold btn-full anim anim-d4" onclick="genContract()" style="margin-bottom:20px">Generate Contract PDF</button>';
+}
+
+function conSetSvc(v){CON.svc=v;CON.clauses=null;renderContract();}
+function setPay(id){CON.pay=id;renderContract();}
+function conLoadJob(id){
+  if(!id)return;const j=DB.jobs.find(x=>x.id==id);if(!j)return;
+  CON.jid=j.id;CON.svc=j.svc||'General';CON.clauses=null;
+  setTimeout(()=>{
+    const n=$('con-n');if(n)n.value=j.cn;
+    const p=$('con-p');if(p)p.value=j.cp||'';
+    const a=$('con-a');if(a)a.value=j.ca||'';
+  },50);
+  renderContract();
+  setTimeout(()=>{
+    const n=$('con-n');if(n)n.value=j.cn;
+    const p=$('con-p');if(p)p.value=j.cp||'';
+    const a=$('con-a');if(a)a.value=j.ca||'';
+  },100);
+}
+
+function editClause(i){
+  const c=CON.clauses[i];
+  const el=$('clause-text-'+i);
+  const card=$('clause-'+i);
+  if(card.classList.contains('editing')){
+    // Save
+    const ta=el.querySelector('textarea');
+    if(ta)c.text=ta.value;
+    el.innerHTML='<p>'+esc(c.text)+'</p>';
+    card.classList.remove('editing');
+    card.querySelector('.clause-actions button').textContent='Edit';
+  } else {
+    el.innerHTML='<textarea>'+esc(c.text)+'</textarea>';
+    card.classList.add('editing');
+    card.querySelector('.clause-actions button').textContent='Save';
+    el.querySelector('textarea').focus();
+  }
+}
+function editCustom(i){
+  showModal('Edit Clause',
+    '<div class="fg"><div class="full"><label class="lbl">Title</label><input id="ec-t" value="'+esc(CON.customClauses[i].title)+'"></div><div class="full"><label class="lbl">Text</label><textarea id="ec-x" rows="4">'+esc(CON.customClauses[i].text)+'</textarea></div></div><button class="btn btn-gold btn-full" style="margin-top:12px" onclick="saveCustomEdit('+i+')">Save</button>'
+  );
+}
+function saveCustomEdit(i){CON.customClauses[i]={title:$('ec-t').value,text:$('ec-x').value};closeModal();renderContract();}
+function rmCustom(i){CON.customClauses.splice(i,1);renderContract();}
+function addClauseModal(){
+  showModal('Add Custom Clause',
+    '<div class="fg"><div class="full"><label class="lbl">Clause Title</label><input id="nc-t" placeholder="e.g. Site Access Requirements"></div><div class="full"><label class="lbl">Clause Text</label><textarea id="nc-x" rows="4" placeholder="Describe the terms..."></textarea></div></div><button class="btn btn-gold btn-full" style="margin-top:12px" onclick="saveNewClause()">Add Clause</button>'
+  );
+}
+function saveNewClause(){
+  const t=$('nc-t').value,x=$('nc-x').value;
+  if(!t||!x){toast('Fill in both fields');return;}
+  CON.customClauses.push({title:t,text:x});
+  closeModal();renderContract();toast('Clause added!');
+}
+
+function genContract(){
+  const name=$('con-n')?.value;if(!name){toast('Enter client name');return;}
+  const addr=$('con-a')?.value||'';
+  const phone=$('con-p')?.value||'';
+  const num='JBC-'+Date.now().toString().slice(-6);
+  const payInfo=PAYMENT_SCHEDULES.find(p=>p.id===CON.pay);
+  const payText=CON.pay==='custom'?CON.payCustom:(payInfo?payInfo.detail:'');
+
+  let linkedJob=null;
+  if(CON.jid)linkedJob=DB.jobs.find(j=>j.id===CON.jid);
+
+  let itemsSec='';
+  if(linkedJob&&linkedJob.items&&linkedJob.items.length){
+    itemsSec='<div class="con-section"><h3>Project Pricing</h3><table class="pp-tbl"><thead><tr><th>Description</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead><tbody>'+linkedJob.items.map(i=>'<tr><td>'+esc(i.n)+'</td><td style="text-align:center">'+i.q+' '+esc(i.u)+'</td><td style="text-align:right">'+fmt(i.r)+'</td><td style="text-align:right;font-weight:600">'+fmt(i.q*i.r)+'</td></tr>').join('')+'</tbody></table><div style="text-align:right;font-size:18px;font-weight:700;color:#1a3a5c;margin-top:10px">Total: '+fmt(linkedJob.total)+'</div></div>';
+  }
+
+  // Build all clauses
+  const allClauses=[...CON.clauses,...CON.customClauses];
+  // Insert payment after index 0
+  const payClause={title:'Payment Terms',text:'Payment schedule: '+payText+' Payment may be made by check, cash, Zelle, or Venmo. All payments are due within 3 business days of invoice date.'};
+
+  let clauseHTML='';
+  let n=1;
+  clauseHTML+='<div class="con-section"><h3>'+n+'. '+esc(allClauses[0].title)+'</h3><p>'+esc(allClauses[0].text)+'</p></div>';n++;
+  if(itemsSec){clauseHTML+=itemsSec;} // no number for pricing table
+  clauseHTML+='<div class="con-section"><h3>'+n+'. '+payClause.title+'</h3><p>'+esc(payClause.text)+'</p></div>';n++;
+  for(let i=1;i<allClauses.length;i++){
+    clauseHTML+='<div class="con-section"><h3>'+n+'. '+esc(allClauses[i].title)+'</h3><p>'+esc(allClauses[i].text)+'</p></div>';n++;
+  }
+  clauseHTML+='<div class="sig-line"><div class="sig-row"><div class="sig-box"><div class="line"></div><div class="sig-lbl">Owner Signature</div></div><div class="sig-box"><div class="line"></div><div class="sig-lbl">Date</div></div></div><div class="sig-row"><div class="sig-box"><div class="line"></div><div class="sig-lbl">Contractor — JB Contracting</div></div><div class="sig-box"><div class="line"></div><div class="sig-lbl">Date</div></div></div></div>';
+
+  if(linkedJob){linkedJob.status='contract';linkedJob.history.push({d:new Date().toISOString(),a:'Contract #'+num+' generated'});save();}
+
+  printDoc('CONTRACT',num,name,addr,phone,clauseHTML);
+}
+
+// ===== INVOICE =====
+function renderInvoice(){
+  const eligible=DB.jobs.filter(j=>['active','done','contract','estimate'].includes(j.status)&&j.items&&j.items.length);
+  if(!eligible.length){
+    $('pg-invoice').innerHTML='<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div><p>No jobs ready to invoice. Create an estimate and save it as a job first.</p><button class="btn btn-gold" onclick="nav(\'est\')">Create Estimate</button></div>';
+    return;
+  }
+  $('pg-invoice').innerHTML=
+    '<div class="card anim"><div class="card-t">Generate Invoice</div><div class="fg">'+
+    '<div class="full"><label class="lbl">Select Job *</label><select id="inv-j"><option value="">— Pick a job —</option>'+eligible.map(j=>'<option value="'+j.id+'">'+esc(j.cn)+' — '+esc(j.pn||j.svc)+' ('+fmt(j.total)+')</option>').join('')+'</select></div>'+
+    '<div class="full"><label class="lbl">Invoice Notes</label><textarea id="inv-nt" placeholder="Thank you for your business! Payment due within 30 days." rows="3"></textarea></div>'+
+    '</div></div>'+
+    '<button class="btn btn-gold btn-full anim anim-d1" onclick="genInvoice()">Generate Invoice PDF</button>';
+}
+function genInvoice(){
+  const jid=$('inv-j')?.value;if(!jid){toast('Select a job');return;}
+  const j=DB.jobs.find(x=>x.id==jid);if(!j)return;
+  const notes=$('inv-nt')?.value||'';
+  const num='INV-'+Date.now().toString().slice(-6);
+  j.status='invoice';j.history.push({d:new Date().toISOString(),a:'Invoice #'+num+' generated'});save();
+
+  const sub=j.items.reduce((a,i)=>a+i.q*i.r,0),tax=sub*(j.tax/100);
+  printDoc('INVOICE',num,j.cn,j.ca,j.cp,
+    '<table class="pp-tbl"><thead><tr><th>Description</th><th>Quantity</th><th>Unit Price</th><th>Amount</th></tr></thead><tbody>'+j.items.map(i=>'<tr><td>'+esc(i.n)+'</td><td style="text-align:center">'+i.q+' '+esc(i.u)+'</td><td style="text-align:right">'+fmt(i.r)+'</td><td style="text-align:right;font-weight:600">'+fmt(i.q*i.r)+'</td></tr>').join('')+'</tbody></table>'+
+    '<div class="pp-tots"><div class="pp-tots-box"><div class="pp-tr"><span>Subtotal</span><span>'+fmt(sub)+'</span></div>'+(j.tax>0?'<div class="pp-tr"><span>Tax ('+j.tax+'%)</span><span>'+fmt(tax)+'</span></div>':'')+'<div class="pp-tt"><span>Amount Due</span><span>'+fmt(j.total)+'</span></div></div></div>'+
+    (notes?'<div style="margin-top:22px"><div class="pp-lbl">Notes</div><div style="background:#f4f1eb;padding:14px 18px;border-radius:8px;font-size:13px;line-height:1.6;color:#444">'+esc(notes)+'</div></div>':'')+
+    '<div style="margin-top:22px;padding:16px 18px;background:#f4f1eb;border-radius:8px;font-size:14px;color:#1a3a5c;line-height:1.7"><strong>Payment Methods:</strong> Check, Cash, Zelle, or Venmo<br><strong>Make checks payable to:</strong> JB Contracting<br><strong>Due within 30 days of invoice date.</strong></div>',
+    j.pn
+  );
+}
+
+// ===== PRINT FROM JOB =====
+function pJobEst(id){
+  const j=DB.jobs.find(x=>x.id===id);if(!j)return;
+  const sub=j.items.reduce((a,i)=>a+i.q*i.r,0),tax=sub*(j.tax/100),tot=sub+tax,dep=tot*(j.dep/100);
+  printDoc('ESTIMATE','JB-'+j.id.toString().padStart(4,'0'),j.cn,j.ca,j.cp,
+    '<table class="pp-tbl"><thead><tr><th>Description</th><th>Quantity</th><th>Unit Price</th><th>Amount</th></tr></thead><tbody>'+j.items.map(i=>'<tr><td>'+esc(i.n)+'</td><td style="text-align:center">'+i.q+' '+esc(i.u)+'</td><td style="text-align:right">'+fmt(i.r)+'</td><td style="text-align:right;font-weight:600">'+fmt(i.q*i.r)+'</td></tr>').join('')+'</tbody></table><div class="pp-tots"><div class="pp-tots-box"><div class="pp-tr"><span>Subtotal</span><span>'+fmt(sub)+'</span></div>'+(j.tax>0?'<div class="pp-tr"><span>Tax ('+j.tax+'%)</span><span>'+fmt(tax)+'</span></div>':'')+'<div class="pp-tt"><span>Total</span><span>'+fmt(tot)+'</span></div>'+(j.dep>0?'<div class="pp-dep"><span style="font-weight:600">Deposit Due ('+j.dep+'%)</span><span style="font-weight:700">'+fmt(dep)+'</span></div>':'')+'</div></div>'+(j.notes?'<div style="margin-top:22px"><div class="pp-lbl">Notes & Scope of Work</div><div style="background:#f4f1eb;padding:14px 18px;border-radius:8px;font-size:13px;line-height:1.7;white-space:pre-wrap;color:#444">'+esc(j.notes)+'</div></div>':''),j.pn);
+}
+function pJobCon(id){CON.jid=id;const j=DB.jobs.find(x=>x.id===id);if(!j)return;CON.svc=j.svc||'General';CON.clauses=null;nav('contract');setTimeout(()=>{const n=$('con-n');if(n)n.value=j.cn;const p=$('con-p');if(p)p.value=j.cp||'';const a=$('con-a');if(a)a.value=j.ca||'';},150);}
+function pJobInv(id){nav('invoice');setTimeout(()=>{const s=$('inv-j');if(s){for(let i=0;i<s.options.length;i++){if(s.options[i].value==id){s.selectedIndex=i;break;}}}},150);}
+
+// ===== UNIVERSAL PRINT =====
+function printDoc(type,num,cn,ca,cp,body,pn){
+  $('print-view').innerHTML=
+    '<div class="print-bar no-print"><button class="bb" onclick="exitPrint()">\u2190 Back</button><span>'+type+' Ready</span><button class="bp" onclick="window.print()">Print / PDF</button></div>'+
+    '<div class="hint no-print"><b>To save as PDF:</b> Tap <b>\u22ee</b> in Chrome \u2192 <b>Share</b> \u2192 <b>Print</b> \u2192 select <b>"Save as PDF"</b> \u2192 Save. The yellow bar and buttons won\'t appear in the PDF.</div>'+
+    '<div class="print-page"><div class="pp-hdr"><div><h2>JB Contracting</h2><div class="loc">Austin, Texas</div></div><div class="rc"><div class="ph">(512) 587-3914</div><div>jbconstructionatx@gmail.com</div><div>www.jbcontractingatx.com</div></div></div><div class="pp-gbar"></div><div class="pp-body"><div class="pp-meta"><div><div class="pp-lbl">Prepared For</div><div class="pp-cn">'+esc(cn)+'</div>'+(ca?'<div class="pp-d">'+esc(ca)+'</div>':'')+(cp?'<div class="pp-d">'+esc(cp)+'</div>':'')+'</div><div style="text-align:right"><div class="pp-et">'+type+'</div><div class="pp-enum"><b>#'+num+'</b><br>'+today()+'</div>'+(pn?'<div class="pp-badge">'+esc(pn)+'</div>':'')+'</div></div>'+body+'</div><div class="pp-foot"><span>'+(type==='CONTRACT'?'Both parties agree to the terms above.':'Valid for 30 days.')+'</span><span>Family-owned & operated in Austin, TX</span></div></div>';
+  $('print-view').style.display='block';
+  $('app-ui').style.display='none';
+  document.body.classList.add('printing');
+  window.scrollTo(0,0);
+}
+function exitPrint(){
+  $('print-view').style.display='none';
+  $('app-ui').style.display='block';
+  document.body.classList.remove('printing');
+}
+function ePrint(){
+  if(!eOk())return;
+  const sub=eSub(),tax=eTax(),tot=eTot(),dep=tot*(E.dep/100),vi=E.items.filter(i=>i.n);
+  printDoc('ESTIMATE','JB-'+Date.now().toString().slice(-6),E.cn,E.ca,E.cp,
+    '<table class="pp-tbl"><thead><tr><th>Description</th><th>Quantity</th><th>Unit Price</th><th>Amount</th></tr></thead><tbody>'+vi.map(i=>'<tr><td>'+esc(i.n)+'</td><td style="text-align:center">'+i.q+' '+esc(i.u)+'</td><td style="text-align:right">'+fmt(i.r)+'</td><td style="text-align:right;font-weight:600">'+fmt(i.q*i.r)+'</td></tr>').join('')+'</tbody></table><div class="pp-tots"><div class="pp-tots-box"><div class="pp-tr"><span>Subtotal</span><span>'+fmt(sub)+'</span></div>'+(E.tax>0?'<div class="pp-tr"><span>Tax ('+E.tax+'%)</span><span>'+fmt(tax)+'</span></div>':'')+'<div class="pp-tt"><span>Total</span><span>'+fmt(tot)+'</span></div>'+(E.dep>0?'<div class="pp-dep"><span style="font-weight:600">Deposit Due ('+E.dep+'%)</span><span style="font-weight:700">'+fmt(dep)+'</span></div>':'')+'</div></div>'+(E.notes?'<div style="margin-top:22px"><div class="pp-lbl">Notes & Scope of Work</div><div style="background:#f4f1eb;padding:14px 18px;border-radius:8px;font-size:13px;line-height:1.7;white-space:pre-wrap;color:#444">'+esc(E.notes)+'</div></div>':''),E.pn);
+}
+
+// ===== SERVICE WORKER REGISTRATION =====
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+
+// ===== INIT =====
+renderDash();
+</script>
+</body>
+</html>
