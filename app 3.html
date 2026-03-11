@@ -156,7 +156,55 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 .ptop button{padding:10px 20px;border-radius:8px;border:none;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;min-height:44px}
 .ptop .pb{background:var(--bg);color:var(--tx2)}.ptop .pp{background:var(--nvy);color:#fff}
 .phint{max-width:8.5in;margin:14px auto;background:#fff;border:1px solid var(--bdr);border-radius:var(--r);padding:16px 20px;font-size:14px;color:#111;line-height:1.6}
-.ppg{max-width:8.5in;margin:14px auto 40px;background:#fff;box-shadow:var(--shl);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.ppg{
+max-width:8.5in;
+margin:14px auto 40px;
+background:#ffffff;
+color:#111;
+box-shadow:var(--shl);
+-webkit-print-color-adjust:exact;
+print-color-adjust:exact
+}
+
+/* FORCE DARK TEXT INSIDE DOCUMENTS */
+.ppg *{
+color:#111 !important;
+}
+
+/* Header styling */
+.pph h2{
+color:#fff !important;
+font-weight:800;
+}
+
+.pph .rc{
+color:#e5e7eb !important;
+}
+
+/* Table styling */
+.pptbl th{
+color:#fff !important;
+}
+
+.pptbl td{
+color:#111 !important;
+}
+
+/* Totals and important numbers */
+.pptr,
+.pptt,
+.ppcn,
+.ppet{
+color:#111 !important;
+font-weight:600;
+}
+
+/* Small notes */
+.ppd,
+.ppen,
+.ppft{
+color:#333 !important;
+}
 .pph{background:linear-gradient(135deg,#1a3a5c,#0d2540);padding:30px 32px;display:flex;justify-content:space-between;align-items:flex-start}
 .pph .rc{text-align:right;color:#111;font-size:12px;line-height:1.8}
 .ppgb{height:3px;background:linear-gradient(90deg,#c9a227,#e8c84a,#c9a227)}
